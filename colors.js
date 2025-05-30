@@ -15,23 +15,26 @@ export const COLORS = {
   BRIGHT_MAGENTA: "\u001b[35;1m",
   BRIGHT_CYAN: "\u001b[36;1m",
   BRIGHT_WHITE: "\u001b[37;1m",
-  RESET: "\u001b[0m"
+  RESET: "\u001b[0m",
+  BOLD: "\u001b[1m",
+  ITALIC: "\u001b[3m",
+  UNDERLINE: "\u001b[4m",
+  BACKGROUNDS: {
+    BLACK: "\u001b[40m",
+    RED: "\u001b[41m",
+    GREEN: "\u001b[42m",
+    YELLOW: "\u001b[43m",
+    BLUE: "\u001b[44m",
+    MAGENTA: "\u001b[45m",
+    CYAN: "\u001b[46m",
+    WHITE: "\u001b[47m",
+    BRIGHT_BLACK: "\u001b[40;1m",
+    BRIGHT_RED: "\u001b[41;1m",
+    BRIGHT_GREEN: "\u001b[42;1m",
+    BRIGHT_YELLOW: "\u001b[43;1m",
+    BRIGHT_BLUE: "\u001b[44;1m",
+    BRIGHT_MAGENTA: "\u001b[45;1m",
+    BRIGHT_CYAN: "\u001b[46;1m",
+    BRIGHT_WHITE: "\u001b[47;1m"
+  }
 }
-
-export const COLOR_BLACK = COLORS.BLACK;
-export const COLOR_RED = COLORS.RED;
-export const COLOR_GREEN = COLORS.GREEN;
-export const COLOR_YELLOW = COLORS.YELLOW;
-export const COLOR_BLUE = COLORS.BLUE;
-export const COLOR_MAGENTA = COLORS.MAGENTA;
-export const COLOR_CYAN = COLORS.CYAN;
-export const COLOR_WHITE = COLORS.WHITE;
-export const COLOR_BRIGHT_BLACK = COLORS.BRIGHT_BLACK;
-export const COLOR_BRIGHT_RED = COLORS.BRIGHT_RED;
-export const COLOR_BRIGHT_GREEN = COLORS.BRIGHT_GREEN;
-export const COLOR_BRIGHT_YELLOW = COLORS.BRIGHT_YELLOW;
-export const COLOR_BRIGHT_BLUE = COLORS.BRIGHT_BLUE;
-export const COLOR_BRIGHT_MAGENTA = COLORS.BRIGHT_MAGENTA;
-export const COLOR_BRIGHT_CYAN = COLORS.BRIGHT_CYAN;
-export const COLOR_BRIGHT_WHITE = COLORS.BRIGHT_WHITE;
-export const COLOR_RESET = COLORS.RESET;
