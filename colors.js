@@ -1,3 +1,6 @@
+/**
+ * Quick access to already created and specified colors without needing to request them through the COLOR_BUILDER
+ */
 export const COLORS = {
   BLACK: "\u001b[30m",
   RED: "\u001b[31m",
@@ -36,5 +39,79 @@ export const COLORS = {
     BRIGHT_MAGENTA: "\u001b[45;1m",
     BRIGHT_CYAN: "\u001b[46;1m",
     BRIGHT_WHITE: "\u001b[47;1m"
+  }
+}
+
+/**
+ * Creation of custom color setups that are not specified in COLORS enum
+ */
+export const COLOR_BUILDER = {
+  ESCAPE: "\u001b",
+  PREFIX: "[",
+  SUFFIX: "m",
+  SEPARATOR: ";",
+
+  RESET: "0",
+  BOLD: "1",
+  ITALIC: "3",
+  UNDERLINE: "4",
+
+  BLACK: "30",
+  RED: "31",
+  GREEN: "32",
+  YELLOW: "33",
+  BLUE: "34",
+  MAGNETA: "35",
+  CYAN: "36",
+  WHITE: "37",
+
+  BACKGROUNDS: {
+    BLACK: "40",
+    RED: "41",
+    GREEN: "42",
+    YELLOW: "43",
+    BLUE: "44",
+    MAGENTA: "45",
+    CYAN: "46",
+    WHITE: "47"
+  },
+
+  /**
+   * Creates the escape sequence necessary for a given color, background, and text styles
+   * 
+   * @param {String} color One of the known color names
+   * @param {String} background One of the known color names, defaults to none
+   * @param {Boolean} bold Whether or not the text is bold, defaults to false
+   * @param {Boolean} italic Whether or not the text is italic, defaults to false
+   * @param {Boolean} underline Whether or not the text is underlined, defaults to false
+   * @return {String} Containing the resultant request. If the request fails, it returns an empty string.
+   * 
+   */
+  REQUEST: (color, background = "", bold = false, italic = false, underline = false) => {
+    if(COLOR_BUILDER.hasOwnProperty(color.toUpperCase())) {
+      let builder = COLOR_BUILDER.ESCAPE + COLOR_BUILDER.PREFIX;
+
+      builder += COLOR_BUILDER[color.toUpperCase()];
+      if(background !== "" && COLOR_BUILDER.BACKGROUNDS.hasOwnProperty(background.toUpperCase())) {
+        builder += COLOR_BUILDER.SEPARATOR + COLOR_BUILDER.BACKGROUNDS[background.toUpperCase()];
+      }
+
+      if(bold) {
+        builder += COLOR_BUILDER.SEPARATOR + COLOR_BUILDER.BOLD;
+      }
+
+      if(italic) {
+        builder += COLOR_BUILDER.SEPARATOR + COLOR_BUILDER.ITALIC;
+      }
+
+      if(underline) {
+        builder += COLOR_BUILDER.SEPARATOR + COLOR_BUILDER.UNDERLINE;
+      }
+
+      builder += COLOR_BUILDER.SUFFIX;
+      return builder;
+    } else {
+      return "";
+    }
   }
 }
