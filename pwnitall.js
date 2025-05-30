@@ -2,7 +2,8 @@ import { serverList } from "servers.js";
 import { COLORS } from "colors.js";
 
 /** @remarks RAM cost 2.1GB
-    @param {NS} ns */
+ *  @param {NS} ns
+ **/
 export async function main(ns) {
 
   let pwnItAll = false;
