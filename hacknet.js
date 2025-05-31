@@ -1,6 +1,6 @@
 import { COLORS } from "colors";
 
-const FLAGS = [['maxServers', 18], ['numLevels', 10], ['numRam', 1], ['numCores', 1], ['sleepTime', 1000]];
+const FLAGS = [['maxServers', Number.MAX_SAFE_INTEGER], ['numLevels', 10], ['numRam', 1], ['numCores', 1], ['sleepTime', 1000]];
 
 /**
  * Manages the hacknet node upgrading & buying process
@@ -11,13 +11,37 @@ const FLAGS = [['maxServers', 18], ['numLevels', 10], ['numRam', 1], ['numCores'
  * @param {Number} sleepTime    Time between script checking to buy
  */
 export async function main(ns) {
+  // Load default flags
   const flags = ns.flags(FLAGS);
 
+  // Update flags based on args, if available
+  flags.maxServers = ns.args[0] || flags.maxServers;
+  flags.numLevels = ns.args[1] || flags.numLevels;
+  flags.numRam = ns.args[2] || flags.numRam;
+  flags.numCores = ns.args[3] || flags.numCores;
+  flags.sleepTime = ns.args[4] || flags.sleepTime;
+
+  // Get number of current servers
   let numOfServers = ns.hacknet.numNodes();
 
   while (true) {
+    // Get current player money
     let playerMoney = ns.getServerMoneyAvailable("home");
 
+    let costs = {
+      level: Number.MAX_SAFE_INTEGER,
+      ram: Number.MAX_SAFE_INTEGER,
+      core: Number.MAX_SAFE_INTEGER,
+      node: ns.hacknet.getPurchaseNodeCost()
+    };
+
+    if (numOfServers > flags.maxServers) {
+      costs.node = Number.MAX_SAFE_INTEGER;
+    }
+
+    let indexes = { level, ram, core, node }
+
+    // Loop through each owned server
     for (var i = 0; i < numOfServers; i++) {
       let nodeInfo = ns.hacknet.getNodeStats(i);
 
@@ -25,27 +49,42 @@ export async function main(ns) {
       let ramCost = ns.hacknet.getRamUpgradeCost(i, 1);
       let coreCost = ns.hacknet.getCoreUpgradeCost(i, 1);
 
-      if (levelCost < ramCost && levelCost < coreCost && levelCost < playerMoney) {
-        ns.tprint(COLORS.BRIGHT_CYAN + "Buying 10 levels for hacknet node " + i + COLORS.RESET);
-        ns.hacknet.upgradeLevel(i, flags.numLevels);
-        playerMoney = ns.getServerMoneyAvailable("home");
-      } else if (ramCost < levelCost && ramCost < coreCost && ramCost < playerMoney) {
-        ns.tprint(COLORS.BRIGHT_CYAN + "Buying ram for hacknet node " + i + COLORS.RESET);
-        ns.hacknet.upgradeRam(i, flags.numRam);
-        playerMoney = ns.getServerMoneyAvailable("home");
-      } else if (coreCost < ramCost && coreCost < levelCost && coreCost < playerMoney) {
-        ns.tprint(COLORS.BRIGHT_CYAN + "Buying core upgrade for hacknet node " + i + COLORS.RESET);
-        ns.hacknet.upgradeCore(i, flags.numCores);
-        playerMoney = ns.getServerMoneyAvailable("home");
+      if (levelCost < costs.level) {
+        costs.level = levelCost; indexes.level = i;
+      }
+      if (ramCost < costs.ram) {
+        costs.ram = ramCost; indexes.ram = i;
+      }
+      if (coreCost < costs.core) {
+        costs.core = coreCost; indexes.core = i;
       }
     }
 
-    let nodeCost = ns.hacknet.getPurchaseNodeCost();
+    // Find out which is cheapest
+    const [cheapestType, cheapestValue] = Object.entries(costs)
+      .reduce((minEntry, currentEntry) => currentEntry[1] < minEntry[1] ? currentEntry : minEntry);
 
-    if (nodeCost < playerMoney && numOfServers <= flags.maxServers) {
-      let newSvIdx = hn.purchaseNode();
-      ns.tprint(COLORS.BRIGHT_CYAN + "Bought new hacknet node: " + newSvIdx);
-      numOfServers = ns.hacknet.numNodes();
+    // Buy cheapest option, if we have the money for it
+    if (cheapestValue <= playerMoney) {
+      switch (cheapestType) {
+        case 'level':
+          ns.tprint(COLORS.BRIGHT_CYAN + "Buying " + flags.numLevels + " for hacknet node " + indexes.level + COLORS.RESET);
+          ns.hacknet.upgradeLevel(indexes.level, flags.numLevels);
+          break;
+        case 'ram':
+          ns.tprint(COLORS.BRIGHT_CYAN + "Buying ram for hacknet node " + indexes.ram + COLORS.RESET);
+          ns.hacknet.upgradeRam(indexes.ram, flags.numRam);
+          break;
+        case 'core':
+          ns.tprint(COLORS.BRIGHT_CYAN + "Buying core upgrade for hacknet node " + indexes.core + COLORS.RESET);
+          ns.hacknet.upgradeCore(i, flags.numCores);
+          break;
+        case 'node':
+          let newSvIdx = ns.hacknet.purchaseNode();
+          ns.tprint(COLORS.BRIGHT_CYAN + "Bought new hacknet node: " + newSvIdx);
+          numOfServers = ns.hacknet.numNodes();
+          break;
+      }
     }
 
     await ns.sleep(flags.sleepTime);
