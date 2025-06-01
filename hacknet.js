@@ -1,6 +1,6 @@
 import { COLORS } from "colors";
 
-const FLAGS = [['maxServers', Number.MAX_SAFE_INTEGER], ['numLevels', 10], ['numRam', 1], ['numCores', 1], ['sleepTime', 1000], ['maxLevels', Number.MAX_SAFE_INTEGER]];
+const FLAGS = [['maxServers', Number.MAX_SAFE_INTEGER], ['numLevels', 10], ['numRam', 1], ['numCores', 1], ['sleepTime', 1000], ['maxLevels', Number.MAX_SAFE_INTEGER], ['silent', false]];
 
 /**
  * Manages the hacknet node upgrading & buying process
@@ -25,13 +25,15 @@ export async function main(ns) {
     flags.maxLevels = ns.args[5] || flags.maxLevels;
   }
 
-  ns.tprint("=== HACKNET SETTINGS ===");
-  ns.tprint("Max Servers: " + flags.maxServers);
-  ns.tprint("# Levels: " + flags.numLevels);
-  ns.tprint("# Ram: " + flags.numRam);
-  ns.tprint("# Cores: " + flags.numCores);
-  ns.tprint("Sleep: " + flags.sleepTime);
-  ns.tprint("Max Level: " + flags.maxLevels);
+  if(!flags.silent) {
+    ns.tprint("===== HACKNET SETTINGS =====");
+    ns.tprint("Max Servers: " + flags.maxServers);
+    ns.tprint("   # Levels: " + flags.numLevels);
+    ns.tprint("      # Ram: " + flags.numRam);
+    ns.tprint("    # Cores: " + flags.numCores);
+    ns.tprint("      Sleep: " + flags.sleepTime);
+    ns.tprint("  Max Level: " + flags.maxLevels);
+  }
 
   // Get number of current servers
   let numOfServers = ns.hacknet.numNodes();
@@ -78,25 +80,32 @@ export async function main(ns) {
     if (cheapestValue <= playerMoney) {
       switch (cheapestType) {
         case 'level':
-          ns.tprint(COLORS.BRIGHT_CYAN + "Buying " + flags.numLevels + " levels for hacknet node " + indexes.level + COLORS.RESET);
+          annMsg(ns, flags, COLORS.BRIGHT_CYAN + "Buying " + flags.numLevels + " levels for hacknet node " + indexes.level + COLORS.RESET);
           ns.hacknet.upgradeLevel(indexes.level, flags.numLevels);
           break;
         case 'ram':
-          ns.tprint(COLORS.BRIGHT_CYAN + "Buying ram for hacknet node " + indexes.ram + COLORS.RESET);
+          annMsg(ns, flags, COLORS.BRIGHT_CYAN + "Buying ram for hacknet node " + indexes.ram + COLORS.RESET);
           ns.hacknet.upgradeRam(indexes.ram, flags.numRam);
           break;
         case 'core':
-          ns.tprint(COLORS.BRIGHT_CYAN + "Buying core upgrade for hacknet node " + indexes.core + COLORS.RESET);
+          annMsg(ns, flags, COLORS.BRIGHT_CYAN + "Buying core upgrade for hacknet node " + indexes.core + COLORS.RESET);
           ns.hacknet.upgradeCore(indexes.core, flags.numCores);
           break;
         case 'node':
           let newSvIdx = ns.hacknet.purchaseNode();
-          ns.tprint(COLORS.BRIGHT_CYAN + "Bought new hacknet node: " + newSvIdx);
+          annMsg(ns, flags, COLORS.BRIGHT_CYAN + "Bought new hacknet node: " + newSvIdx);
           numOfServers = ns.hacknet.numNodes();
           break;
       }
     }
 
+    logMsg(ns, flags, "Cheapest: " + cheapestValue + ", Money: " + playerMoney + ", Type: " + cheapestType);
+
+    if(cheapestValue == Number.MAX_SAFE_INTEGER) {
+      // We must have bought everything we can, terminate
+      annMsg(ns, flags, COLORS.BRIGHT_GREEN + "Hacknet purchasing complete.");
+      ns.exit();
+    }
     await ns.sleep(flags.sleepTime);
   }
 }
@@ -104,4 +113,16 @@ export async function main(ns) {
 export function autocomplete(data, args) {
   data.flags(FLAGS);
   return [];
+}
+
+function logMsg(ns, flags, message) {
+  if(!flags.silent) {
+    ns.print(message);
+  }
+}
+
+function annMsg(ns, flags, message) {
+  if(!flags.silent) {
+    ns.tprint(message);
+  }
 }
