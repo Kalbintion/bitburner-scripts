@@ -45,27 +45,27 @@ export const COLORS = {
 /**
  * Creation of custom color setups that are not specified in COLORS enum
  */
-export const COLOR_BUILDER = {
-  ESCAPE: "\u001b",
-  PREFIX: "[",
-  SUFFIX: "m",
-  SEPARATOR: ";",
+export class COLOR_BUILDER {
+  static ESCAPE = "\x1B"; // Equivalent to "\u001b"
+  static PREFIX = "[";
+  static SUFFIX = "m";
+  static SEPARATOR = ";";
 
-  RESET: "0",
-  BOLD: "1",
-  ITALIC: "3",
-  UNDERLINE: "4",
+  static RESET = "0";
+  static BOLD = "1";
+  static ITALIC = "3";
+  static UNDERLINE = "4";
 
-  BLACK: "30",
-  RED: "31",
-  GREEN: "32",
-  YELLOW: "33",
-  BLUE: "34",
-  MAGNETA: "35",
-  CYAN: "36",
-  WHITE: "37",
+  static BLACK = "30";
+  static RED = "31";
+  static GREEN = "32";
+  static YELLOW = "33";
+  static BLUE = "34";
+  static MAGNETA = "35";
+  static CYAN = "36";
+  static WHITE = "37";
 
-  BACKGROUNDS: {
+  static BACKGROUNDS = {
     BLACK: "40",
     RED: "41",
     GREEN: "42",
@@ -74,20 +74,20 @@ export const COLOR_BUILDER = {
     MAGENTA: "45",
     CYAN: "46",
     WHITE: "47"
-  },
+  };
 
   /**
    * Creates the escape sequence necessary for a given color, background, and text styles
    * 
-   * @param {String} color One of the known color names
-   * @param {String} background One of the known color names, defaults to none
-   * @param {Boolean} bold Whether or not the text is bold, defaults to false
-   * @param {Boolean} italic Whether or not the text is italic, defaults to false
+   * @param {String} color      One of the known color names
+   * @param {String} background One of the known color names, defaults to none (empty string)
+   * @param {Boolean} bold      Whether or not the text is bold, defaults to false
+   * @param {Boolean} italic    Whether or not the text is italic, defaults to false
    * @param {Boolean} underline Whether or not the text is underlined, defaults to false
    * @return {String} Containing the resultant request. If the request fails, it returns an empty string.
-   * 
+   * NOTE: If a background is supplied but is not a valid color name, it will ignore it.
    */
-  REQUEST: (color, background = "", bold = false, italic = false, underline = false) => {
+  static REQUEST(color, background = "", bold = false, italic = false, underline = false) {
     if(COLOR_BUILDER.hasOwnProperty(color.toUpperCase())) {
       let builder = COLOR_BUILDER.ESCAPE + COLOR_BUILDER.PREFIX;
 
