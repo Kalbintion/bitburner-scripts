@@ -1,8 +1,13 @@
 import { COLORS } from "colors";
 import { serverList } from "servers.js";
 
+const FLAGS = [['silent', false]];
+
 /** @param {NS} ns */
 export async function main(ns) {
+  // Load default flags
+  const flags = ns.flags(FLAGS);
+  
   const servMax = serverList.length - 1;
   const servMin = 0;
 
@@ -40,17 +45,42 @@ export async function main(ns) {
     var securityThresh = targetInfo[5];
 
     if (ns.hasRootAccess(target)) {
-      ns.tprint(COLORS.WHITE + "INFO: Targeting server: " + target + COLORS.RESET);
+      ns.tprintf(COLORS.WHITE + "Server: %-15s, targeted" + COLORS.RESET, target);
       if (ns.getServerSecurityLevel(target) > securityThresh) {
         let securityReduce = await ns.weaken(target);
-        ns.tprint(COLORS.BRIGHT_RED + "INFO: Server: " + target + ", Security: " + securityReduce + COLORS.RESET);
+        annMsgF(ns, flags, COLORS.BRIGHT_RED + "Server: %-15s, Security: %s", target, securityReduce.toFixed(5) + COLORS.RESET);
       } else if (ns.getServerMoneyAvailable(target) < moneyThresh) {
         let grownMoney = await ns.grow(target);
-        ns.tprint(COLORS.GREEN + "INFO: Server: " + target + ", Grown: " + grownMoney + COLORS.RESET);
+        annMsgF(ns, flags, COLORS.GREEN + "Server: %-15s, Grown: %s", target, grownMoney.toFixed(5) + COLORS.RESET);
       } else {
         let earnedMoney = await ns.hack(target);
-        ns.tprint(COLORS.BRIGHT_GREEN + "INFO: Server: " + target + ", Earned: " + earnedMoney + COLORS.RESET);
+        annMsgF(ns, flags, COLORS.BRIGHT_GREEN + "Server: %-15s, Earned: %s", target, earnedMoney.toFixed(5) + COLORS.RESET);
       }
     }
+  }
+}
+
+
+function logMsg(ns, flags, message) {
+  if (!flags.silent) {
+    ns.print(message);
+  }
+}
+
+function logMsgF(ns, flags, format, ...args) {
+  if (!flags.silent) {
+    ns.printf(format, ...args);
+  }
+}
+
+function annMsg(ns, flags, message) {
+  if (!flags.silent) {
+    ns.tprint(message);
+  }
+}
+
+function annMsgF(ns, flags, format, ...args) {
+  if (!flags.silent) {
+    ns.tprintf(format, ...args);
   }
 }
