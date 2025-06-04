@@ -24,10 +24,12 @@ export class ServerListing {
         addServer = false;
       }
 
+      // Add server to output list
       if (addServer) {
         serversOut.push(hostname);
       }
 
+      // Scan server and add unseen servers to scan list
       var newScan = ns.scan(hostname);
       for (var j = 0; j < newScan.length; j++) {
         if (servers.indexOf(newScan[j]) == -1) {
