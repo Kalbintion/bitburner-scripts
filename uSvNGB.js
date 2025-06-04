@@ -1,6 +1,6 @@
 import {COLORS} from "colors";
 
-const FLAGS = [['size', 16]];
+const FLAGS = [['size', 16], ['power', 0]];
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -8,6 +8,9 @@ export async function main(ns) {
   let pMoney = ns.getServerMoneyAvailable("home");
   
   const flags = ns.flags(FLAGS);
+  if(flags.power > 0) {
+    flags.size = Math.pow(2, flags.power);
+  }
 
   for(var i = 0; i < serverList.length; ++i) {
     let hostname = serverList[i];
