@@ -1,6 +1,12 @@
+import { IServerDetails } from "/ddom/IServerDetails.js";
 import { ServerHacker } from "/ddom/ServerHacker.js";
+import { SecurityData } from "/ddom/SecurityData.js";
+import { RamData } from "/ddom/RamData.js";
+import { TimingData } from "/ddom/TimingData.js";
+import { GrowthData } from "/ddom/GrowthData.js";
+import { PortData } from "/ddom/PortData.js";
 
-export class ServerDetails {
+export class ServerDetails extends IServerDetails {
   /** @type {NS} */
   ns;
   /** @type {Server} */
@@ -13,6 +19,7 @@ export class ServerDetails {
    * @param {String} target
    */
   constructor(ns, target) {
+    super();
     this.ns = ns;
 
     if (!ns.serverExists(target)) {
@@ -97,10 +104,10 @@ export class ServerDetails {
 
   /**
    * Gets the RAM information about this server
-   * @returns {RAMData} An object containing the various RAM information.
+   * @returns {RamData} An object containing the various RAM information.
    */
   fetchRAM() {
-    return new RAMData(
+    return new RamData(
       this.sv.ramUsed,
       this.sv.maxRam
     )
@@ -127,8 +134,8 @@ export class ServerDetails {
    * Hacks this given server, opening ports as required before running NUKE
    * @return {Boolean} True if hacked, false otherwise
    */
-  hack() {
-    return ServerHacker.hack(this.ns, this.sv);
+  async hack() {
+    return await ServerHacker.hack(this.ns, this);
   }
 
   /**
@@ -139,7 +146,7 @@ export class ServerDetails {
     let g = this.fetchGrowth(),
       t = this.fetchTiming();
 
-    return ((g.money_max * g.growth) / t.grow / t.hack);
+    return ((g.money_max * g.growth) / (t.grow * t.hack));
   }
 
   /**
@@ -162,135 +169,5 @@ export class ServerDetails {
    */
   hasFile(file) {
     return this.ns.fileExists(file, this.hostname);
-  }
-}
-
-export class SecurityData {
-  root = false;
-  base = Number.MAX_SAFE_INTEGER;
-  min = Number.MAX_SAFE_INTEGER;
-  cur = Number.MAX_SAFE_INTEGER;
-  skill = Number.MAX_SAFE_INTEGER;
-  /** @type {TimingData} */
-  timing;
-  /** @type {PortData} */
-  ports;
-
-  /**
-   * @param {Boolean} root      Whether or not root access is available
-   * @param {Number} base       Base security level
-   * @param {Number} min        Minimum security level
-   * @param {Number} cur        Current security level
-   * @param {Number} skill      Required hacking skill
-   * @param {TimingData} timing Status of timing information
-   * @param {PortData} ports    Status of port information
-   */
-  constructor(root, base, min, cur, skill, timing, ports) {
-    this.root = root;
-    this.base = base;
-    this.min = min;
-    this.cur = cur;
-    this.skill = skill;
-    this.timing = timing;
-    this.ports = ports;
-  }
-
-  toString() {
-    return `[SecurityData] Root: ${this.root}, Base: ${this.base}, Min: ${this.min}, Current: ${this.cur}, Skill: ${this.skill}, Timing: ${this.timing}, Ports: ${this.ports}`;
-  }
-}
-
-export class PortData {
-  open = 0;
-  req = Number.MAX_SAFE_INTEGER;
-  ftp = false;
-  ssh = false;
-  smtp = false;
-  sql = false;
-  http = false;
-
-  /**
-   * @param {Number} open   Number of opened ports
-   * @param {Number} req    Required number of opened ports
-   * @param {Boolean} ftp   FTP port status
-   * @param {Boolean} ssh   SSH port status
-   * @param {Boolean} smtp  SMTP port status
-   * @param {Boolean} sql   SQL port status
-   * @param {Boolean} http  HTTP port status
-   */
-  constructor(open, req, ftp, ssh, smtp, sql, http) {
-    this.open = open;
-    this.req = req;
-    this.ftp = ftp;
-    this.ssh = ssh;
-    this.smtp = smtp;
-    this.sql = sql;
-    this.http = http;
-  }
-
-  toString() {
-    return `[PortData] Open: ${this.open}/${this.req} (FTP: ${this.ftp}, SSH: ${this.ssh}, SMTP: ${this.smtp}, SQL: ${this.sql}, HTTP: ${this.http})`;
-  }
-}
-
-export class TimingData {
-  hack = Number.MAX_SAFE_INTEGER;
-  grow = Number.MAX_SAFE_INTEGER;
-  weak = Number.MAX_SAFE_INTEGER;
-
-  /**
-   * @param {Number} hack
-   * @param {Number} grow
-   * @param {Number} weak
-   */
-  constructor(hack, grow, weak) {
-    this.hack = hack;
-    this.grow = grow;
-    this.weak = weak;
-  }
-
-  toString() {
-    return `[TimingData] Hack: ${this.hack.toFixed(2)}ms, Grow: ${this.grow.toFixed(2)}ms, Weaken: ${this.weak.toFixed(2)}ms`;
-  }
-}
-
-export class GrowthData {
-  growth = 0;
-  money_current = 0;
-  money_max = 0;
-
-  /**
-   * @param {Number} growth
-   * @param {Number} money_current
-   * @param {Number} money_max
-   */
-  constructor(growth, money_current, money_max) {
-    this.growth = growth;
-    this.money_current = money_current;
-    this.money_max = money_max;
-  }
-
-  toString() {
-    return `[GrowthData] Growth: x${this.growth}, Money: ${this.money_current} / ${this.money_max}`;
-  }
-}
-
-export class RamData {
-  used = 0;
-  max = 0;
-  free = 0;
-
-  /**
-   * @param {Number} used
-   * @param {Number} max
-   */
-  constructor(used, max) {
-    this.used = used;
-    this.max = max;
-    this.free = max - used;
-  }
-
-  toString() {
-    return `[RamData] Used: ${this.used}GB, Free: ${this.free}GB, Max: ${this.max}GB`;
   }
 }
