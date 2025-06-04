@@ -1,10 +1,11 @@
-import { ServerDetails, PortData, TimingData, SecurityData, GrowthData, RamData } from "/ddom/ServerDetails.js";
-import { ServerListing } from "/ddom/ServerListing.js";
+import { ServerDetails } from "/ddom/ServerDetails.js";
+import { ServerListing, ServerListingIncludes } from "/ddom/ServerListing.js";
 import { LOGGER } from "/ddom/logger.js";
 import { Box } from "/ddom/boxes.js";
-import { BB_CONSTS } from "/ddom/consts.js";
-
+import { FILES, BB_CONSTS } from "/ddom/consts.js";
+import { DDOMTests } from "./tests.js";
 import { COLOR_BUILDER, COLORS } from "/colors.js";
+import { TimingData } from "./TimingData.js";
 
 const FLAGS = [
   ['help', false],
@@ -14,7 +15,8 @@ const FLAGS = [
   ['include-home', false],
   ['include-no-ram', false],
   ['include-no-money', false],
-  ['sleepTime', 1000]
+  ['sleepTime', 1000],
+  ['debug', false]
 ];
 const APP_NAME = "Distributed Denial of Money";
 const APP_VER = "v1.0.0";
@@ -38,21 +40,38 @@ export async function main(ns) {
   LOGGER.annf(ns, flags, Box.generateLine(APP_WIDTH, " " + APP_VER + " "));
   LOGGER.annf(ns, flags, Box.generateBottomBar(APP_WIDTH));
 
+  // Basic Sanity Checks
+  DDOMTests.verifyScriptsDefined(ns); // FILES.DDOM keys must be defined
+  DDOMTests.verifyDDOMFiles(ns);      // FILES.DDOM files must exist on home
+
   /* Variable setup */
   // Script RAM usage
   const rHack = ns.getScriptRam(FILES.DDOM.slaveHack);
   const rWeak = ns.getScriptRam(FILES.DDOM.slaveWeak);
   const rGrow = ns.getScriptRam(FILES.DDOM.slaveGrow);
 
+  DDOMTests.verifyRamValues(ns, rHack, rWeak, rGrow);   // Make sure ram costs are not 0
+
   // Get available server listing
-  const serverInclude = new ServerListingIncludes(flags["include-home"], flags["include-pserv"], flags["include-no-money"], flags["include-no-ram"]);
+  const serverInclude = new ServerListingIncludes(
+    flags["include-home"], flags["include-pserv"], flags["include-no-money"], flags["include-no-ram"]);
+
   var servers = new Map(),
     serverList = ServerListing.getServers(ns, serverInclude);
+
+  DDOMTests.verifyServerList(ns, serverList); // Must have actual servers to look over
 
   // Create each servers details
   for (var i = 0; i < serverList.length; ++i) {
     try {
-      servers.set(serverList[i], new ServerDetails(ns, serverList[i]));
+      let details = new ServerDetails(ns, serverList[i]);
+
+      // Do some basic checks on server
+      DDOMTests.verifyTiming(ns, details);
+      DDOMTests.verifyServerValue(ns, details);
+
+      // Add server to the list
+      servers.set(serverList[i], details);
     } catch (err) {
       ns.tprint("ERROR: " + err.message);
       ns.tprint(err.stack);
@@ -76,16 +95,32 @@ export async function main(ns) {
       /** @type {ServerDetails} */
       let sv = servers.get(keys[i]);
 
+      if (flags.debug) {
+        ns.printf("[DEBUG] Checking server %s", sv.hostname);
+      }
+
       // Have we already hacked or is it hackable? If so, do it
       if (sv.hackable()) {
-        sv.hack();
+        if (flags.debug) {
+          ns.printf("[DEBUG] Hacking server %s", sv.hostname);
+        }
+        await sv.hack();
       }
+
+      // We have access to run scripts.
+      await server.transfer([FILES.DDOM.slaveWeak, FILES.DDOM.slaveHack, FILES.DDOM.slaveGrow], "home");
 
       // Get server value
       var newValue = sv.value();
+      if (flags.debug) {
+        ns.printf("[DEBUG] Determined server %s has value of %s", sv.hostname, newValue);
+      }
 
       // Update best if current server is better
       if (newValue > bestServerValue) {
+        if (flags.debug) {
+          ns.printf("[DEBUG] Server %s has better value (%s) than %s with %s", sv.hostname, newValue, bestServer, bestServerValue);
+        }
         bestServer = sv.hostname;
         bestServerValue = newValue;
       }
@@ -119,6 +154,19 @@ export async function main(ns) {
       const threadsGrow = Math.ceil(ns.growthAnalyze(enactedServer, growMultiplier));
       const threadsWeak2 = Math.ceil((threadsGrow * BB_CONSTS.SEC_PER_GROW_THREAD) / BB_CONSTS.SEC_REDUCE_PER_WEAKEN_THREAD);
 
+      if (flags.debug) {
+        ns.printf("Enacted Server Data [%s]", enactedServer);
+        ns.printf("Hack Fraction: %s", hackFraction);
+        ns.printf("Steal Percent: %s", stealPercent);
+        ns.printf("# Threads [Hack]: %s", threadsHack);
+        ns.printf("# Threads [Weak 1]: %s", threadsWeak1);
+        ns.printf("# Threads [Grow]: %s", threadsGrow);
+        ns.printf("# Threads [Weak 2]: %s", threadsWeak2);
+        ns.printf("Max Money: %s", maxMoney);
+        ns.printf("Money Stolen: %s", moneyStolen);
+        ns.printf("Grow Mult: %s", growMultiplier);
+      }
+
       const tThreads = [
         { script: FILES.DDOM.slaveWeak, threads: threadsWeak1, ramPerThread: rWeak, delay: 0 },
         { script: FILES.DDOM.slaveHack, threads: threadsHack, ramPerThread: rHack, delay: tWeak - tHack - spacing },
@@ -129,12 +177,14 @@ export async function main(ns) {
       for (const { script, threads, ramPerThread, delay } of tThreads) {
         let remaining = threads;
 
+        if (flags.debug) {
+          ns.printf("[DEBUG] Remaining threads for %s is %s", script, remaining);
+        }
+
         for (var i = 0; i < keys.length; ++i) {
           var server = servers.get(keys[i]);
           if (server.sv.hasAdminRights) {
-            /** @type {ServerDetails} */
-            server.endItAll();
-
+            server.refresh();
             var sRam = server.fetchRAM();
             var sRamFree = sRam.free;
 
@@ -143,16 +193,21 @@ export async function main(ns) {
 
             if (useThreads <= 0) continue;
 
-            // We have access to run scripts.
-            await server.transfer([FILES.DDOM.slaveWeak, FILES.DDOM.slaveHack, FILES.DDOM.slaveGrow], "home");
-
             const pid = ns.exec(script, server.hostname, useThreads, enactedServer, delay);
             if (pid === 0) {
               ns.tprintf("WARN: Failed to run %s on %s with %d threads", script, server.hostname, useThreads);
+            } else {
+              if (flags.debug) {
+                ns.printf("Ran script %s on server %s with threads %s", script, server.hostname, useThreads);
+              }
             }
 
             sRamFree -= useThreads * ramPerThread;
             remaining -= useThreads;
+
+            if (flags.debug) {
+              ns.printf("[DEBUG] Remaining threads for %s is now %s", script, remaining);
+            }
 
             if (remaining <= 0) break;
           }
@@ -160,6 +215,9 @@ export async function main(ns) {
       }
     }
 
+    if (flags.debug) {
+      ns.printf("[DEBUG] Sleeping for %s", flags.sleepTime);
+    }
     await ns.sleep(flags.sleepTime);
   }
 }
