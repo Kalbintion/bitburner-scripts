@@ -11,11 +11,11 @@ export async function main(ns) {
 
   for(var i = 0; i < serverList.length; ++i) {
     let hostname = serverList[i];
-    let uCost = ns.getPurchasedServerUpgradeCost(hostname, 16);
+    let uCost = ns.getPurchasedServerUpgradeCost(hostname, flags.size);
     let maxRam = ns.getServerMaxRam(hostname);
 
-    if(uCost < pMoney && maxRam < flags.size) {
-      ns.tprintf(COLORS.BRIGHT_YELLOW + "Upgraded server %s to %s", hostname, ns.formatRam(flags.size));
+    if(uCost > -1 && uCost < pMoney && maxRam < flags.size) {
+      ns.tprintf(COLORS.BRIGHT_YELLOW + "Upgraded server %s to %s [Cost: %s, Have: %s]", hostname, ns.formatRam(flags.size), ns.formatNumber(uCost), ns.formatNumber(pMoney));
       ns.upgradePurchasedServer(hostname, flags.size);
       pMoney = ns.getServerMoneyAvailable("home");
     } else if(maxRam >= flags.size) {
