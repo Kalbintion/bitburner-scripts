@@ -1,11 +1,21 @@
-import { ServerDetails } from "/ddom/ServerDetails.js";
+import { ServerDetails, PortData, TimingData, SecurityData, GrowthData, RamData } from "/ddom/ServerDetails.js";
 import { ServerListing } from "/ddom/ServerListing.js";
 import { LOGGER } from "/ddom/logger.js";
 import { Box } from "/ddom/boxes.js";
+import { BB_CONSTS } from "/ddom/consts.js";
 
 import { COLOR_BUILDER, COLORS } from "/colors.js";
 
-const FLAGS = [['help', undefined], ['log-self', "ALL"], ['silent', false], ['include-pserv', false], ['include-home', false], ['include-no-ram', false], ['include-no-money', false], ['sleepTime', 1000]];
+const FLAGS = [
+  ['help', false],
+  ['log-self', "ALL"],
+  ['silent', false],
+  ['include-pserv', false],
+  ['include-home', false],
+  ['include-no-ram', false],
+  ['include-no-money', false],
+  ['sleepTime', 1000]
+];
 const APP_NAME = "Distributed Denial of Money";
 const APP_VER = "v1.0.0";
 const APP_WIDTH = 80;
@@ -14,44 +24,139 @@ const APP_WIDTH = 80;
 export async function main(ns) {
   // Load default flags
   const flags = ns.flags(FLAGS);
-  if(flags.help !== undefined) {
+  if (flags.help) {
     help(ns);
   }
 
-  ns.disableLog(flags.log-self);
+  // Disable and clear log
+  ns.disableLog(flags['log-self']);
   ns.clearLog();
 
+  // Application header
   LOGGER.annf(ns, flags, Box.generateTopBar(APP_WIDTH));
   LOGGER.annf(ns, flags, Box.generateLine(APP_WIDTH, " " + APP_NAME + " "));
   LOGGER.annf(ns, flags, Box.generateLine(APP_WIDTH, " " + APP_VER + " "));
   LOGGER.annf(ns, flags, Box.generateBottomBar(APP_WIDTH));
 
-  var servers = new Map(),
-      serverLister = new ServerListing,
-      serverList = serverLister.getServers(ns, (flags.include-pserv && flags.include-home), flags.include-no-money, flags.include-no-ram);
+  /* Variable setup */
+  // Script RAM usage
+  const rHack = ns.getScriptRam(FILES.DDOM.slaveHack);
+  const rWeak = ns.getScriptRam(FILES.DDOM.slaveWeak);
+  const rGrow = ns.getScriptRam(FILES.DDOM.slaveGrow);
 
+  // Get available server listing
+  const serverInclude = new ServerListingIncludes(flags["include-home"], flags["include-pserv"], flags["include-no-money"], flags["include-no-ram"]);
+  var servers = new Map(),
+    serverList = ServerListing.getServers(ns, serverInclude);
+
+  // Create each servers details
   for (var i = 0; i < serverList.length; ++i) {
     try {
       servers.set(serverList[i], new ServerDetails(ns, serverList[i]));
-    } catch(err) {
+    } catch (err) {
       ns.tprint("ERROR: " + err.message);
       ns.tprint(err.stack);
       ns.exit();
     }
   }
 
+  // Setup enacted server vars, these are the currently targeted server
+  var enactedServer = "";
+  var enactedServerValue = 0;
+
   while (true) {
+    // Setup best vars, these are the currently best targetable server
     var bestServer = "n00dles";
     var bestServerValue = 0;
 
-    let keys = servers.keys();
+    let keys = [...servers.keys()];
 
-    for(var i = 0; i < keys.length; ++i) {
-      var sv = servers.get(keys[i]);
-      var newValue = sv.value(ns, host);
+    // Check each server for which is best
+    for (let i = 0; i < keys.length; ++i) {
+      /** @type {ServerDetails} */
+      let sv = servers.get(keys[i]);
 
-      if(newValue > bestServerValue) {
+      // Have we already hacked or is it hackable? If so, do it
+      if (sv.hackable()) {
+        sv.hack();
+      }
+
+      // Get server value
+      var newValue = sv.value();
+
+      // Update best if current server is better
+      if (newValue > bestServerValue) {
         bestServer = sv.hostname;
+        bestServerValue = newValue;
+      }
+    }
+
+    // If the best server is already enacted upon, do nothing
+    if (bestServer !== enactedServer) {
+      LOGGER.annf(ns, flags, "[DDOM] Enacting upon new best server: %s with value of %s. Previous server was %s with value %s", bestServer, bestServerValue, enactedServer, enactedServerValue);
+
+      enactedServer = bestServer;
+      enactedServerValue = bestServerValue;
+
+      // Act upon best server
+      /** @type {ServerDetails} */
+      const svBest = servers.get(bestServer);
+      /** @type {TimingData} */
+      const timingData = svBest.fetchTiming();
+
+      const tHack = timingData.hack,
+        tGrow = timingData.grow,
+        tWeak = timingData.weak,
+        spacing = BB_CONSTS.TIME_PER_TICK;
+
+      const hackFraction = ns.hackAnalyze(enactedServer);
+      const stealPercent = 0.10;
+      const threadsHack = Math.floor(stealPercent / hackFraction);
+      const threadsWeak1 = Math.ceil((threadsHack * BB_CONSTS.SEC_PER_HACK_THREAD) / BB_CONSTS.SEC_REDUCE_PER_WEAKEN_THREAD);
+      const maxMoney = ns.getServerMaxMoney(enactedServer);
+      const moneyStolen = maxMoney * stealPercent;
+      const growMultiplier = maxMoney / (maxMoney - moneyStolen);
+      const threadsGrow = Math.ceil(ns.growthAnalyze(enactedServer, growMultiplier));
+      const threadsWeak2 = Math.ceil((threadsGrow * BB_CONSTS.SEC_PER_GROW_THREAD) / BB_CONSTS.SEC_REDUCE_PER_WEAKEN_THREAD);
+
+      const tThreads = [
+        { script: FILES.DDOM.slaveWeak, threads: threadsWeak1, ramPerThread: rWeak, delay: 0 },
+        { script: FILES.DDOM.slaveHack, threads: threadsHack, ramPerThread: rHack, delay: tWeak - tHack - spacing },
+        { script: FILES.DDOM.slaveGrow, threads: threadsGrow, ramPerThread: rGrow, delay: tWeak - tGrow + spacing },
+        { script: FILES.DDOM.slaveWeak, threads: threadsWeak2, ramPerThread: rWeak, delay: spacing * 2 }
+      ];
+
+      for (const { script, threads, ramPerThread, delay } of tThreads) {
+        let remaining = threads;
+
+        for (var i = 0; i < keys.length; ++i) {
+          var server = servers.get(keys[i]);
+          if (server.sv.hasAdminRights) {
+            /** @type {ServerDetails} */
+            server.endItAll();
+
+            var sRam = server.fetchRAM();
+            var sRamFree = sRam.free;
+
+            const maxThreads = Math.floor(sRamFree / ramPerThread);
+            const useThreads = Math.min(remaining, maxThreads);
+
+            if (useThreads <= 0) continue;
+
+            // We have access to run scripts.
+            await server.transfer([FILES.DDOM.slaveWeak, FILES.DDOM.slaveHack, FILES.DDOM.slaveGrow], "home");
+
+            const pid = ns.exec(script, server.hostname, useThreads, enactedServer, delay);
+            if (pid === 0) {
+              ns.tprintf("WARN: Failed to run %s on %s with %d threads", script, server.hostname, useThreads);
+            }
+
+            sRamFree -= useThreads * ramPerThread;
+            remaining -= useThreads;
+
+            if (remaining <= 0) break;
+          }
+        }
       }
     }
 
@@ -74,7 +179,6 @@ function help(ns) {
   ns.tprintf("%s", Box.generateLine(APP_WIDTH, APP_VER + " ", true));
   ns.tprintf("%s", Box.generateBottomBar(APP_WIDTH));
 
-  const FLAGS = [['help', undefined] ['log-self', "ALL"], ['silent', false], ['include-pserv', false], ['include-home', false], ['include-no-ram', false], ['include-no-money', false], ['sleepTime', 1000]];
   const italic = COLOR_BUILDER.REQUEST("white", "", false, true, false);
   const scriptName = ns.getScriptName();
 
@@ -83,7 +187,7 @@ function help(ns) {
   ns.tprintf("%s %s", italic + scriptName + COLORS.RESET + " ", args);
 
   ns.tprintf(argFormat, "--include-pserv", "Whether or not we are including pserv-* servers. Default false.");
-  ns.tprintf(argFormat, "--include-home", "Wehtehr or not we are including the home server. Defaults false.");
+  ns.tprintf(argFormat, "--include-home", "Whether or not we are including the home server. Defaults false.");
   ns.tprintf(argFormat, "--include-no-ram", "Whether or not we are including 0 ram servers. Defaults false.");
   ns.tprintf(argFormat, "--include-no-money", "Whether or not we include servers with 0 max money. Defaults false.");
   ns.tprintf(argFormat, "--silent", "Determines if we should output anything at all to the terminal/logs. Defaults false");
