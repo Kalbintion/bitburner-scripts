@@ -1,30 +1,18 @@
-import { FILES } from "/ddom/consts.js";
-import { ServerDetails } from "/ddom/ServerDetails.js";
+import { FILES } from "./consts.js";
+import { IServerDetails } from "./IServerDetails.js";
 
 export class ServerHacker {
   /**
-   * Hacks a given server based on the Server
-   * @param {NS} ns
-   * @param {Server} sv
-   * @return {Boolean} True, if hacked, false otherwise
-   */
-  static hackServer(ns, sv) {
-    const svDetails = new ServerDetails(ns, sv.hostname);
-    return ServerHacker.hack(ns, svDetails);
-  }
-
-  /**
    * Hacks a given server based on ServerDetails
    * @param {NS} ns
-   * @param {ServerDetails} sv
+   * @param {IServerDetails} sv
    * @return {Boolean} True, if hacked, false otherwise
    */
-  static hack(ns, sv) {
+  static async hack(ns, sv) {
     // Defensive check: wrap string check with typeof, fallback if needed
-    if (typeof sv === "object" && sv.hostname !== undefined && !(sv instanceof ServerDetails)) {
-      sv = new ServerDetails(ns, sv.hostname);
+    if (typeof sv === "object" && sv.hostname !== undefined && !(sv instanceof IServerDetails)) {
+      throw new Error("Invalid ServerDetails instance, got type: " + sv.constructor.name);
     }
-
     if (!sv.hackable()) return false;
 
     const actions = [
