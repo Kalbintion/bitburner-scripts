@@ -1,6 +1,11 @@
+import { ServerHacker } from "/ddom/ServerHacker.js";
+
 export class ServerDetails {
+  /** @type {NS} */
   ns;
+  /** @type {Server} */
   sv;
+  /** @type {String} */
   hostname;
 
   /**
@@ -16,6 +21,21 @@ export class ServerDetails {
 
     this.hostname = target;
     this.sv = ns.getServer(target);
+  }
+
+  /**
+   * Kills all processes on the server
+   * @returns {Boolean} True if any scripts were ended, false otherwise
+   */
+  endItAll() {
+    return this.ns.killall(this.hostname, true);
+  }
+
+  /**
+   * Refresh the servers sv reference
+   */
+  refresh() {
+    this.sv = this.ns.getServer(this.hostname);
   }
 
   /**
@@ -35,6 +55,10 @@ export class ServerDetails {
     );
   }
 
+  /**
+   * Gets timing information for hack, grow and weaken
+   * @returns {TimingData} An object containing the various timing information.
+   */
   fetchTiming() {
     return new TimingData(
       this.ns.getHackTime(this.hostname),
@@ -43,6 +67,10 @@ export class ServerDetails {
     );
   }
 
+  /**
+   * Gets the port information for which port(s) are open, number needed and number opened
+   * @returns {PortData} An object containing the various port information.
+   */
   fetchPorts() {
     return new PortData(
       this.sv.openPortCount,
@@ -55,11 +83,26 @@ export class ServerDetails {
     );
   }
 
+  /**
+   * Gets the growth & money information about this server
+   * @returns {GrowthData} An object containing the various growth information.
+   */
   fetchGrowth() {
     return new GrowthData(
       this.sv.serverGrowth,
       this.sv.moneyAvailable,
       this.sv.moneyMax
+    )
+  }
+
+  /**
+   * Gets the RAM information about this server
+   * @returns {RAMData} An object containing the various RAM information.
+   */
+  fetchRAM() {
+    return new RAMData(
+      this.sv.ramUsed,
+      this.sv.maxRam
     )
   }
 
@@ -110,7 +153,7 @@ export class ServerDetails {
       files = [files];
     }
 
-    ns.scp(files, dest, src);
+    this.ns.scp(files, dest, src);
   }
 
   /**
@@ -118,7 +161,7 @@ export class ServerDetails {
    * @param {String} file   A file to check
    */
   hasFile(file) {
-    return ns.fileExists(file, this.hostname);
+    return this.ns.fileExists(file, this.hostname);
   }
 }
 
@@ -151,6 +194,10 @@ export class SecurityData {
     this.timing = timing;
     this.ports = ports;
   }
+
+  toString() {
+    return `[SecurityData] Root: ${this.root}, Base: ${this.base}, Min: ${this.min}, Current: ${this.cur}, Skill: ${this.skill}, Timing: ${this.timing}, Ports: ${this.ports}`;
+  }
 }
 
 export class PortData {
@@ -180,6 +227,10 @@ export class PortData {
     this.sql = sql;
     this.http = http;
   }
+
+  toString() {
+    return `[PortData] Open: ${this.open}/${this.req} (FTP: ${this.ftp}, SSH: ${this.ssh}, SMTP: ${this.smtp}, SQL: ${this.sql}, HTTP: ${this.http})`;
+  }
 }
 
 export class TimingData {
@@ -187,10 +238,19 @@ export class TimingData {
   grow = Number.MAX_SAFE_INTEGER;
   weak = Number.MAX_SAFE_INTEGER;
 
+  /**
+   * @param {Number} hack
+   * @param {Number} grow
+   * @param {Number} weak
+   */
   constructor(hack, grow, weak) {
     this.hack = hack;
     this.grow = grow;
     this.weak = weak;
+  }
+
+  toString() {
+    return `[TimingData] Hack: ${this.hack.toFixed(2)}ms, Grow: ${this.grow.toFixed(2)}ms, Weaken: ${this.weak.toFixed(2)}ms`;
   }
 }
 
@@ -199,9 +259,38 @@ export class GrowthData {
   money_current = 0;
   money_max = 0;
 
+  /**
+   * @param {Number} growth
+   * @param {Number} money_current
+   * @param {Number} money_max
+   */
   constructor(growth, money_current, money_max) {
     this.growth = growth;
     this.money_current = money_current;
     this.money_max = money_max;
+  }
+
+  toString() {
+    return `[GrowthData] Growth: x${this.growth}, Money: ${this.money_current} / ${this.money_max}`;
+  }
+}
+
+export class RamData {
+  used = 0;
+  max = 0;
+  free = 0;
+
+  /**
+   * @param {Number} used
+   * @param {Number} max
+   */
+  constructor(used, max) {
+    this.used = used;
+    this.max = max;
+    this.free = max - used;
+  }
+
+  toString() {
+    return `[RamData] Used: ${this.used}GB, Free: ${this.free}GB, Max: ${this.max}GB`;
   }
 }
