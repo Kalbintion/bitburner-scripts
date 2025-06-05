@@ -28,6 +28,7 @@ The following is a list of scripts for utility purposes and do not necessarily i
 - `colors.js` &mdash; Utility methods for creating text colors either through `COLORS` for pre-defined colors or `COLOR_BUILDER` for `REQUEST`ing one.
 - `find.js` &mdash; Utility script for finding the path to a server, useful for hacking various servers such as CSEC
 - `nmap.js` &mdash; Utility script that outputs server information to `servers.js` that is then imported by other scripts
+- `infil.js` &mdash; Utility script to determine which infiltration is best to manually target. Offers plenty of flag options for filter, see `--help` for more info.
 
 # Recommended Aliases
 The following aliases are used by me to minimize needing to run things one after another
