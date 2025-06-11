@@ -17,7 +17,7 @@ export async function main(ns) {
     }
   }
 
-  const svFormat = "%-32s | %17s | %15s | %15s | %17s | %18s | %17s | %-15s | %-15s"
+  const svFormat = "%-28s | %16s | %14s | %15s | %16s | %18s | %15s | %-13s | %-15s";
   ns.tprintf(svFormat,
     COLORS.MAGENTA + "SERVER" + COLORS.RESET,
     COLORS.BRIGHT_WHITE + "RAM" + COLORS.RESET, 
@@ -25,8 +25,8 @@ export async function main(ns) {
     COLORS.BRIGHT_WHITE + "HACK" + COLORS.RESET,
     COLORS.BRIGHT_WHITE + "MAX $" + COLORS.RESET,
     COLORS.BRIGHT_WHITE + "MIN SEC" + COLORS.RESET,
-    COLORS.BRIGHT_WHITE + "GROWTH" + COLORS.RESET,
-    COLORS.BRIGHT_WHITE + "ROOTED" + COLORS.RESET,
+    COLORS.BRIGHT_WHITE + "GROW" + COLORS.RESET,
+    COLORS.BRIGHT_WHITE + "ROOT" + COLORS.RESET,
     COLORS.BRIGHT_WHITE + "STATUS" + COLORS.RESET);
 
   for (let i = 0; i < serverList.length; ++i) {
@@ -48,45 +48,45 @@ export async function main(ns) {
             case 1:
               if (ns.fileExists("BruteSSH.exe")) {
                 await ns.brutessh(servName);
-                ns.tprint(COLORS.CYAN + "Executing BruteSSH on " + servName);
+                ns.print(COLORS.CYAN + "Executing BruteSSH on " + servName);
               } else {
-                ns.tprint(COLORS.RED + "Failed to BruteSSH. File missing.");
+                ns.print(COLORS.RED + "Failed to BruteSSH. File missing.");
                 break whileBlock;
               }
               break;
             case 2:
               if (ns.fileExists("FTPCrack.exe")) {
                 await ns.ftpcrack(servName);
-                ns.tprint(COLORS.CYAN + "Executing FTPCrack on " + servName);
+                ns.print(COLORS.CYAN + "Executing FTPCrack on " + servName);
               } else {
-                ns.tprint(COLORS.RED + "Failed to FTPCrack. File missing.");
+                ns.print(COLORS.RED + "Failed to FTPCrack. File missing.");
                 break whileBlock;
               }
               break;
             case 3:
               if (ns.fileExists("relaySMTP.exe")) {
                 await ns.relaysmtp(servName);
-                ns.tprint(COLORS.CYAN + "Executing relaySMTP on " + servName);
+                ns.print(COLORS.CYAN + "Executing relaySMTP on " + servName);
               } else {
-                ns.tprint(COLORS.RED + "Failed to relaySMTP. File missing");
+                ns.print(COLORS.RED + "Failed to relaySMTP. File missing");
                 break;
               }
               break;
             case 4:
               if (ns.fileExists("HTTPWorm.exe")) {
                 await ns.httpworm(servName);
-                ns.tprint(COLORS.CYAN + "Executing HTTPWorm on " + servName);
+                ns.print(COLORS.CYAN + "Executing HTTPWorm on " + servName);
               } else {
-                ns.tprint(COLORS.RED + "Failed to HTTPWorm. File missing");
+                ns.print(COLORS.RED + "Failed to HTTPWorm. File missing");
                 break whileBlock;
               }
               break;
             case 5:
               if (ns.fileExists("SQLInject.exe")) {
                 await ns.sqlinject(servName);
-                ns.tprint(COLORS.CYAN + "Executing SQLInject on " + servName);
+                ns.print(COLORS.CYAN + "Executing SQLInject on " + servName);
               } else {
-                ns.tprint(COLORS.RED + "Failed to SQLInject. File missing");
+                ns.print(COLORS.RED + "Failed to SQLInject. File missing");
                 break whileBlock;
               }
               break;
@@ -129,7 +129,7 @@ export async function main(ns) {
       COLORS.BRIGHT_WHITE + ns.formatNumber(servMaxMoney, 0) + COLORS.RESET,
       COLORS.BRIGHT_WHITE + servMinSec + COLORS.RESET,
       COLORS.BRIGHT_WHITE + ns.formatNumber(servGrowth, 0) + COLORS.RESET,
-      COLORS.YELLOW + rootAccess + COLORS.RESET,
+      (rootAccess ? COLORS.GREEN + "Y" : COLORS.RED + "N") + COLORS.RESET,
       servStatus
     );
   }

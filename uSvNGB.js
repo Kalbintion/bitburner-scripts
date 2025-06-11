@@ -8,8 +8,22 @@ export async function main(ns) {
   let pMoney = ns.getServerMoneyAvailable("home");
   
   const flags = ns.flags(FLAGS);
+
+  if(flags.power > 20 || flags.power < 0) {
+    ns.tprintf(COLORS.BRIGHT_RED + "ERROR: Cannot upgrade servers over 2^20 or below 2^0. Expected: [0, 20] Got: %s", flags.power);
+    ns.exit();
+  }
+
   if(flags.power > 0) {
     flags.size = Math.pow(2, flags.power);
+  }
+
+  if(flags.size > 0 && !((flags.size & (flags.size - 1)) === 0)) {
+    let nPow = Math.round(Math.log2(flags.size));
+    if(nPow > 20) nPow = 20;
+    let nVal = Math.pow(2, nPow);
+    ns.tprintf(COLORS.BRIGHT_RED + "ERROR: Cannot upgrade servers to non-power of two value. Got: %s, Nearest: %s", flags.size, nVal);
+    ns.exit();
   }
 
   for(var i = 0; i < serverList.length; ++i) {

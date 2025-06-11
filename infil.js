@@ -1,6 +1,6 @@
 const FLAGS = [
   ['headless', false],
-  ['sort', 'value:desc'],
+  ['sort', 'value:desc,repPerAction:desc'],
   ['filter', 'LEQ'],
   ['filterValue', Number.MAX_SAFE_INTEGER],
   ['help', false]
@@ -45,7 +45,7 @@ export async function main(ns) {
     const d = ns.infiltration.getInfiltration(loc.name);
     const rep = d.reward.tradeRep;
     const difficulty = d.difficulty;
-    const repPerAction = rep / difficulty;
+    const repPerAction = rep / d.maxClearanceLevel;
     const value = ((rep / d.maxClearanceLevel) / difficulty) + (rep / d.maxClearanceLevel);
     return {
       name: loc.name,
@@ -146,7 +146,7 @@ Description:
   Allows sorting by multiple fields and filtering based on difficulty.
 
 Options:
-  --sort         Comma-separated list of sort keys (default: value:desc)
+  --sort         Comma-separated list of sort keys (default: value:desc,repPerAction:desc)
                  Format: key[:asc|desc][,key[:asc|desc]...]
                  Valid keys (case-insensitive, dashes/underscores allowed):
                    - name
@@ -182,8 +182,8 @@ Examples:
   run infil.js --sort repPerAction:desc,value:asc
     Sort by rep per action descending, then by value ascending.
 
-  run infil.js --filter GTR --filterValue 3
-    Show only entries with difficulty greater than 3.
+  run infil.js --filter GTR --filterValue 1
+    Show only entries with difficulty greater than 1.
 
   run infil.js --headless
     Output results only, without header rows.

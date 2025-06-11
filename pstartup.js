@@ -16,5 +16,4 @@ export async function main(ns) {
     ns.tprintf("%s", COLORS.WHITE + "Setup server: " + servName + COLORS.RESET);
     await ns.sleep(delayBetween);
   }
-
 }

@@ -8,15 +8,20 @@ export async function main(ns) {
 
     findIt(ns, "", "home", server, route);
 
-    for(const i in route) {
-      if(i == 0) {
-        out = route[i];
+    for(let path of route) {
+      if(out == "") {
+        out = path;
       } else {
-        out += " => " + route[i];
+        out += " => " + path;
       }
     }
 
     ns.tprint(out);
+    ns.print(out);
+  } else {
+    let format = "Server %s does not exist!";
+    ns.tprintf(format, server);
+    ns.printf(format, server);
   }
 }
 
