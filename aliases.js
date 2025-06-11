@@ -67,22 +67,6 @@ export async function main(ns) {
 }
 
 /**
- * Executes a command as if typed on the terminal manually
- * @param {String} command 
- */
-function doCommand(command) {
-    let doc = eval("document");
-    const term = doc.getElementById("terminal-input");
-
-    term.value = command;
-
-    const handler = Object.keys(term)[1];
-
-    term[handler].onChange({ target: term });
-    term[handler].onKeyDown({ key: 'Enter', preventDefault: () => null });
-}
-
-/**
  * Creates an alias to be used on the terminal
  * @param {String} alias 
  * @param {String} command 
@@ -112,4 +96,37 @@ function removeAllAlias() {
 export function autocomplete(data, args) {
   data.flags(FLAGS);
   return [];
+}
+
+
+/**
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * WARNING - WARNING - WARNING - WARNING - WARNING
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * 
+ * The function below contains a game spoiler
+ * about how the game functions. Do not read the
+ * doCommand function if you do not wish to be
+ * spoiled! 
+ * 
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * WARNING - WARNING - WARNING - WARNING - WARNING
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ */
+
+/**
+ * Executes a command as if typed on the terminal manually
+ * @param {String} command 
+ */
+function doCommand(command) {
+    let doc = eval("document"); // Bypasses RAM usage of document call
+    const term = doc.getElementById("terminal-input");
+
+    term.value = command;
+
+    // TODO: Make this better so it isnt always assumed [1] has __reactProps
+    const handler = Object.keys(term)[1];       // Gets the reactProps handler
+    term[handler].onChange({ target: term });   // Properly sets the value for react
+    term[handler].onKeyDown(                    // Simulates enter being pressed
+        { key: 'Enter', preventDefault: () => null }); 
 }
