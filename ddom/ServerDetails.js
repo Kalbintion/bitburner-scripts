@@ -144,9 +144,11 @@ export class ServerDetails extends IServerDetails {
    */
   value() {
     let g = this.fetchGrowth(),
-      t = this.fetchTiming();
+      t = this.fetchTiming(),
+      hc = this.ns.hackAnalyzeChance(this.hostname),
+      ha = this.ns.hackAnalyze(this.hostname);
 
-    return ((g.money_max * g.growth) / (t.grow * t.hack));
+    return (g.money_max * ha * hc) / (t.hack + t.grow);
   }
 
   /**

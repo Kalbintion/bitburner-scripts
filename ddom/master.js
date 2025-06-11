@@ -1,11 +1,16 @@
-import { ServerDetails } from "/ddom/ServerDetails.js";
-import { ServerListing, ServerListingIncludes } from "/ddom/ServerListing.js";
-import { LOGGER } from "/ddom/logger.js";
-import { Box } from "/ddom/boxes.js";
-import { FILES, BB_CONSTS } from "/ddom/consts.js";
-import { DDOMTests } from "./tests.js";
+// Utility Imports
+import { LOGGER } from "./logger.js";
+import { Box } from "./boxes.js";
 import { COLOR_BUILDER, COLORS } from "/colors.js";
+
+// Function Imports
+import { ServerDetails } from "./ServerDetails.js";
+import { ServerListing, ServerListingIncludes } from "./ServerListing.js";
 import { TimingData } from "./TimingData.js";
+import { DDOMTests } from "./tests.js";
+
+// Other Imports
+import { FILES, BB_CONSTS } from "./consts.js";
 
 const FLAGS = [
   ['help', false],
@@ -91,9 +96,9 @@ export async function main(ns) {
     let keys = [...servers.keys()];
 
     // Check each server for which is best
-    for (let i = 0; i < keys.length; ++i) {
+    for (const key of keys) {
       /** @type {ServerDetails} */
-      let sv = servers.get(keys[i]);
+      let sv = servers.get(key);
 
       if (flags.debug) {
         ns.printf("[DEBUG] Checking server %s", sv.hostname);
@@ -108,7 +113,7 @@ export async function main(ns) {
       }
 
       // We have access to run scripts.
-      await server.transfer([FILES.DDOM.slaveWeak, FILES.DDOM.slaveHack, FILES.DDOM.slaveGrow], "home");
+      await sv.transfer([FILES.DDOM.slaveWeak, FILES.DDOM.slaveHack, FILES.DDOM.slaveGrow], "home");
 
       // Get server value
       var newValue = sv.value();
