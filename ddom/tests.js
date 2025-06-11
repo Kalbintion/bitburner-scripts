@@ -1,4 +1,4 @@
-import { FILES } from "/ddom/consts.js";
+import { FILES } from "./consts.js";
 
 export class DDOMTests {
   /**

@@ -1,5 +1,5 @@
-import { serverList } from "servers.js";
-import { COLORS } from "colors.js";
+import { serverList } from "/servers.js";
+import { COLORS } from "/util/colors.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -97,7 +97,7 @@ export async function main(ns) {
     }
 
     if (servSecurity == 0 || rootAccess) {
-      ns.scp(["colors.js", "servers.js", scriptName], servName);
+      ns.scp(["/util/colors.js", "/servers.js", scriptName], servName);
       if (!rootAccess && pHack >= servHack) {
         servStatus = COLORS.GREEN + "NUKED" + COLORS.RESET;
         //ns.tprint(COLORS.GREEN + "Nuking server: " + servName);

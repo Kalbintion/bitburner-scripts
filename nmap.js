@@ -1,7 +1,10 @@
 /** @param {NS} ns */
 export async function main(ns) {
   let servers = ["home"];
-  ns.clear("servers.js");
+  
+  if(ns.fileExists("servers.js")) {
+    ns.clear("servers.js");
+  }
 
   ns.write("servers.js", "export const serverList = [\r\n");
   for (var i = 0; i < servers.length; ++i) {

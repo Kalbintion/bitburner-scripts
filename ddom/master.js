@@ -1,7 +1,7 @@
 // Utility Imports
 import { LOGGER } from "./logger.js";
 import { Box } from "./boxes.js";
-import { COLOR_BUILDER, COLORS } from "/colors.js";
+import { COLOR_BUILDER, COLORS } from "/util/colors.js";
 
 // Function Imports
 import { ServerDetails } from "./ServerDetails.js";

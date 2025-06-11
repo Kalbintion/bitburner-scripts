@@ -1,4 +1,4 @@
-import { COLORS } from "colors";
+import { COLORS } from "/util/colors.js";
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -11,7 +11,7 @@ export async function main(ns) {
     const servName = serverList[i];
 
     ns.killall(servName);
-    ns.scp(["colors.js", "servers.js", scriptName], servName);
+    ns.scp(["/util/colors.js", "/servers.js", scriptName], servName);
     ns.exec(scriptName, servName, Math.floor(ns.getServerMaxRam(servName) / ns.getScriptRam(scriptName)), target);
     ns.tprintf("%s", COLORS.WHITE + "Setup server: " + servName + COLORS.RESET);
     await ns.sleep(delayBetween);
