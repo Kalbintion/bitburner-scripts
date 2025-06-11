@@ -1,4 +1,4 @@
-import { COLORS, COLOR_BUILDER } from "colors.js";
+import { COLORS, COLOR_BUILDER } from "/util/colors.js";
 
 /** @param {NS} ns */
 export async function main(ns) {

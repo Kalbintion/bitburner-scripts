@@ -1,4 +1,4 @@
-import { COLORS } from "colors";
+import { COLORS } from "/util/colors.js";
 import { serverList } from "servers";
 
 const FLAGS = [['silent', false]];

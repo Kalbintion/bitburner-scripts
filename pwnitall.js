@@ -1,5 +1,5 @@
+import { COLORS } from "/util/colors.js";
 import { serverList } from "servers.js";
-import { COLORS } from "colors.js";
 
 const FLAGS = [['silent', false], ['sleepTime', 1000]];
 

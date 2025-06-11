@@ -1,4 +1,4 @@
-import { COLORS } from "colors";
+import { COLORS } from "/util/colors.js";
 
 const FLAGS = [['maxServers', Number.MAX_SAFE_INTEGER], ['numLevels', 10], ['numRam', 1], ['numCores', 1], ['sleepTime', 1000], ['maxLevels', Number.MAX_SAFE_INTEGER], ['silent', false]];
 

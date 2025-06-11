@@ -1,4 +1,4 @@
-import {COLORS} from "colors";
+import {COLORS} from "/util/colors.js";
 
 const FLAGS = [['size', 16], ['power', 0]];
 
