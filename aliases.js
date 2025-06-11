@@ -1,4 +1,4 @@
-const FLAGS = [['clearAll', false], ['skipUtil', false], ['skipSetup', false], ['skipSv', false]];
+const FLAGS = [['clearAll', false], ['skipUtil', false], ['skipSetup', false], ['skipSv', false], ['keepHistory', false]];
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -9,6 +9,10 @@ export async function main(ns) {
 
     if(flags.clearAll) {
         removeAllAlias();
+    }
+
+    if(!flags.keepHistory) {
+        doCommand("cls");
     }
     
     /**
@@ -32,25 +36,34 @@ export async function main(ns) {
         doAlias("pstartup", "run /pstartup.js");
         doAlias("phome", "run /pstartup-home.js");
         doAlias("pia", "run /pwnitall.js");
+
+        doAlias("ddom", "run /ddom/master.js");
     }
 
     // Server Purchasing & Upgrading
     if(!flags.skipSv) {
-        doAlias("psv", "run /pSvNGB.js");
-        doAlias("usv", "run /uSvNGB.js");
+        doAlias("psv", "run /xsv/pSvNGB.js");
+        doAlias("usv", "run /xsv/uSvNGB.js");
 
-        doAlias("psv8", "run /pSvNGB.js --power 3");
-        doAlias("usv8", "run /uSvNGB.js --power 3");
+        doAlias("psv8", "run /xsv/pSvNGB.js --power 3");
+        doAlias("usv8", "run /xsv/uSvNGB.js --power 3");
 
-        doAlias("psv16", "run /pSvNGB.js --power 4");
-        doAlias("usv16", "run /uSvNGB.js --power 4");
+        doAlias("psv16", "run /xsv/pSvNGB.js --power 4");
+        doAlias("usv16", "run /xsv/uSvNGB.js --power 4");
 
-        doAlias("psv32", "run /pSvNGB.js --power 5");
-        doAlias("usv32", "run /uSvNGB.js --power 5");
+        doAlias("psv32", "run /xsv/pSvNGB.js --power 5");
+        doAlias("usv32", "run /xsv/uSvNGB.js --power 5");
 
-        doAlias("psv64", "run /pSvNGB.js --power 6");
-        doAlias("usv64", "run /uSvNGB.js --power 6");
+        doAlias("psv64", "run /xsv/pSvNGB.js --power 6");
+        doAlias("usv64", "run /xsv/uSvNGB.js --power 6");
     }
+
+    // Finally clear the terminal of output if desired
+    if(!flags.keepHistory) {
+        doCommand("cls");
+    }
+
+    ns.tprintf("Aliases have been setup!");
 }
 
 /**
