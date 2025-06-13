@@ -3,26 +3,27 @@ export async function main(ns) {
   let route = [],
       server = ns.args[0];
 
-  if(ns.serverExists(server)) {
-    let out = "";
-
-    findIt(ns, "", "home", server, route);
-
-    for(let path of route) {
-      if(out == "") {
-        out = path;
-      } else {
-        out += " => " + path;
-      }
-    }
-
-    ns.tprint(out);
-    ns.print(out);
-  } else {
+  if(!ns.serverExists(server)) {
     let format = "Server %s does not exist!";
     ns.tprintf(format, server);
     ns.printf(format, server);
+    return;
   }
+
+  let out = "";
+
+  findIt(ns, "", "home", server, route);
+
+  for(let path of route) {
+    if(out == "") {
+      out = path;
+    } else {
+      out += " => " + path;
+    }
+  }
+
+  ns.tprint(out);
+  ns.print(out);
 }
 
 function findIt(ns, parent, sv, target, route) {
