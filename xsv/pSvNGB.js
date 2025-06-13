@@ -29,11 +29,19 @@ export async function main(ns) {
   while (i < serverLimit) {
     if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(flags.size)) {
       let hostname = ns.purchaseServer("pserv-" + i, flags.size);
-      ns.scp(["colors.js", "servers.js", flags.script], hostname);
+      ns.scp(["./util/colors.js", "servers.js", flags.script], hostname);
       ns.exec(flags.script, hostname, 3);
       ++i;
     }
 
     await ns.sleep(1000);
   }
+}
+  
+/**
+ * @param {AutocompleteData} data
+ */
+export function autocomplete(data, args) {
+  data.flags(FLAGS);
+  return [];
 }
