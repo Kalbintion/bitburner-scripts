@@ -21,20 +21,22 @@ export async function main(ns) {
 
     // Utility Functions
     if(!flags.skipUtil) {
+        doAlias("aliases", "run /aliases.js");
+        doAlias("updateScripts", "run /util/dl.js");
+
         doAlias("kia", "run /killitall.js");
         doAlias("eia", "run /enditall.js");
         doAlias("svinfo", "run /svinfo.js");
         doAlias("nmap", "run /nmap.js");
         doAlias("find", "run /find.js");
-        doAlias("aliases", "run /aliases.js");
     }
 
     // Setup & Startups
     if(!flags.skipSetup) {
-        doAlias("setup", "nmap.js; startup.js; pstartup.js pstartup-home.js; pwnitall.js; hacknet.js --maxServers 18 --sleepTime 200; stock.js --tail");
-        doAlias("startup", "run /startup.js");
-        doAlias("pstartup", "run /pstartup.js");
-        doAlias("phome", "run /pstartup-home.js");
+        doAlias("setup", "nmap.js; pwnitall.js; hacknet.js --maxServers 18 --sleepTime 200; stock.js --tail; ./setups/startup.js; ./setups/pstartup.js; ./setups/pstartup-home.js;");
+        doAlias("startup", "run /setups/startup.js");
+        doAlias("pstartup", "run /setups/pstartup.js");
+        doAlias("phome", "run /setups/pstartup-home.js");
         doAlias("pia", "run /pwnitall.js");
 
         doAlias("ddom", "run /ddom/master.js");
@@ -89,7 +91,7 @@ function removeAlias(alias) {
 function removeAllAlias() {
     doCommand(`unalias --all`);
 }
-  
+
 /**
  * @param {AutocompleteData} data
  */
