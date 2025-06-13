@@ -115,3 +115,17 @@ export class COLOR_BUILDER {
     }
   }
 }
+
+/**
+ * List of known color names to be used with the COLOR_BUILDER.REQUEST
+ */
+export class COLORS_KNOWN {
+  static BLACK = "BLACK";
+  static RED = "RED";
+  static GREEN = "GREEN";
+  static YELLOW = "YELLOW";
+  static BLUE = "BLUE";
+  static MAGNETA = "MAGENTA";
+  static CYAN = "CYAN";
+  static WHITE = "WHITE";
+}
